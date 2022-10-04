@@ -106,8 +106,8 @@ def run(rank, n_gpus, hps):
   net_d = DDP(net_d, device_ids=[rank])
 
   try:
-    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), net_g, optim_g)
-    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "D_*.pth"), net_d, optim_d)
+    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.data.model_dir, "G_*.pth"), net_g, optim_g)
+    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.data.model_dir, "D_*.pth"), net_d, optim_d)
     global_step = (epoch_str - 1) * len(train_loader)
   except:
     epoch_str = 1
@@ -228,10 +228,14 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
           scalars=scalar_dict)
 
       if global_step % hps.train.eval_interval == 0:
+        print(global_step, 'saving checkpoint')
         evaluate(hps, net_g, eval_loader, writer_eval)
-        utils.save_checkpoint(net_g, optim_g, hps.train.learning_rate, epoch, '/content/drive/MyDrive/Genshin_ms/G_ms.pth')
-        utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, '/content/drive/MyDrive/Genshin_ms/D_ms.pth')
+        # utils.save_checkpoint(net_g, optim_g, hps.train.learning_rate, epoch, '/content/drive/MyDrive/Genshin_ms/G_ms.pth')
+        # utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, '/content/drive/MyDrive/Genshin_ms/D_ms.pth')
+        utils.save_checkpoint(net_g, optim_g, hps.train.learning_rate, epoch, 'checkpoints/G_ms.pth')
+        utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, 'checkpoints/D_ms.pth')
     global_step += 1
+    print(global_step)
   
   if rank == 0:
     logger.info('====> Epoch: {}'.format(epoch))

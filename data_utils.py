@@ -186,6 +186,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         audiopaths_sid_text_new = []
         lengths = []
         for audiopath, sid, text in self.audiopaths_sid_text:
+            audiopath = './src/audio/' + audiopath
             if self.min_text_len <= len(text) and len(text) <= self.max_text_len:
                 audiopaths_sid_text_new.append([audiopath, sid, text])
                 lengths.append(os.path.getsize(audiopath) // (2 * self.hop_length))
@@ -350,6 +351,8 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
       for i in range(len(self.buckets)):
           bucket = self.buckets[i]
           len_bucket = len(bucket)
+          if len_bucket <= 0:
+              continue
           ids_bucket = indices[i]
           num_samples_bucket = self.num_samples_per_bucket[i]
   

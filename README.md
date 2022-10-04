@@ -51,8 +51,9 @@ python train.py -c configs/ljs_base.json -m ljs_base
 
 # VCTK
 python train_ms.py -c configs/vctk_base.json -m vctk_base
+
+# Genshin
+python train_ms.py -c configs/genshin_base_ms.json -m genshin_base
 ```
-
-
 ## Inference Example
 See [inference.ipynb](inference.ipynb)

@@ -135,9 +135,9 @@ def load_wav_to_torch(full_path):
   return torch.FloatTensor(data.astype(np.float32)), sampling_rate
 
 
-def load_filepaths_and_text(filename, split="|"):
+def load_filepaths_and_text(filename, split="\t"):
   with open(filename, encoding='utf-8') as f:
-    filepaths_and_text = [line.strip().split(split) for line in f]
+    filepaths_and_text = [line.strip().split(split) for line in f if len(line) >= 3]
   return filepaths_and_text
 
 
