@@ -232,17 +232,19 @@ def draw_loss(length):
     losses_name = ['loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, epoch, lr']
     with open(path + 'losslog.txt', 'r') as f:
       lines = f.readlines()
-      print(lines)
+      if not lines:
+        return
       for line in lines:
         line = line.strip().split(',')
-        for idx in len(losses):
-          for i in range(len(line)):
-            losses[idx].append(float(line[i]))
+        for idx in range(len(losses)):
+          losses[idx].append(float(line[idx]))
     print(losses)
     epoch = int(losses[-2][-1])
     x1 = range(1, epoch+1)
     plt.title('Train loss vs. epoches', fontsize=20)
     for i in range(len(losses)):
+      if i == 6:
+        continue
       print(len(x1), len(losses[i]))
       plt.cla()
       plt.plot(x1, losses[i], '.-')
@@ -250,8 +252,7 @@ def draw_loss(length):
       plt.ylabel(f'{losses_name[i]}', fontsize=20)
       plt.grid()
       plt.savefig(path + f"{losses_name[i]}.png")
-      if i != 6:
-        plt.plot()
+      plt.plot()
 
 class HParams():
   def __init__(self, **kwargs):

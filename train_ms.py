@@ -207,9 +207,19 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
           100. * batch_idx / len(train_loader)))
         logger.info('loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, global_step, lr')
         logger.info([x.item() for x in losses] + [global_step, lr])
-        with open('./checkpoints/losslog/losslog.txt', 'a') as f:
-          f.write(','.join([str(x.item()) for x in losses] + [str(epoch), str(lr)]) + '\n')
-          utils.draw_loss(8)
+        # write_mod = 'a'
+        # with open('./checkpoints/losslog/losslog.txt', 'r') as f:
+        #   lines = f.readlines()
+        #   line = lines[-1].strip().split(',')
+        #   print(line)
+        #   if int(line[-2]) != epoch - 1:
+        #     write_mod = 'w'
+        #   else:
+        #     write_mod = 'a'
+        # with open('./checkpoints/losslog/losslog.txt', write_mod) as f:
+        #   f.write(','.join([str(x.item()) for x in losses] + [str(epoch), str(lr)]) + '\n')
+        #   # if epoch > 1:
+        #   utils.draw_loss(8)
         
         scalar_dict = {"loss/g/total": loss_gen_all, "loss/d/total": loss_disc_all, "learning_rate": lr, "grad_norm_d": grad_norm_d, "grad_norm_g": grad_norm_g}
         scalar_dict.update({"loss/g/fm": loss_fm, "loss/g/mel": loss_mel, "loss/g/dur": loss_dur, "loss/g/kl": loss_kl})
