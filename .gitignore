@@ -11,9 +11,7 @@ build
 monotonic_align/monotonic_align
 models
 checkpoints
-filelists
-path
 .pdf
 .docx
 .zip
-src
+src/audio/*.spec.pt

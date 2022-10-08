@@ -6,3 +6,5 @@ phonemizer==2.2.1
 scipy==1.5.2
 Unidecode==1.1.1
 pypinyin==0.47.0
+pypinyin_dict
+jieba

@@ -1,3 +1,4 @@
+from ctypes import util
 import os
 import json
 import argparse
@@ -12,11 +13,8 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.cuda.amp import autocast, GradScaler
-
-import librosa
-import logging
-
-logging.getLogger('numba').setLevel(logging.WARNING)
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 import commons
 import utils
@@ -49,7 +47,7 @@ def main():
 
   n_gpus = torch.cuda.device_count()
   os.environ['MASTER_ADDR'] = 'localhost'
-  os.environ['MASTER_PORT'] = '8000'
+  os.environ['MASTER_PORT'] = '8080'
 
   hps = utils.get_hparams()
   mp.spawn(run, nprocs=n_gpus, args=(n_gpus, hps,))
@@ -106,8 +104,8 @@ def run(rank, n_gpus, hps):
   net_d = DDP(net_d, device_ids=[rank])
 
   try:
-    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.data.model_dir, "G_*.pth"), net_g, optim_g)
-    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.data.model_dir, "D_*.pth"), net_d, optim_d)
+    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.checkpoints, "G_*.pth"), net_g, optim_g)
+    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.checkpoints, "D_*.pth"), net_d, optim_d)
     global_step = (epoch_str - 1) * len(train_loader)
   except:
     epoch_str = 1
@@ -207,7 +205,11 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
         logger.info('Train Epoch: {} [{:.0f}%]'.format(
           epoch,
           100. * batch_idx / len(train_loader)))
+        logger.info('loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, global_step, lr')
         logger.info([x.item() for x in losses] + [global_step, lr])
+        with open('./checkpoints/losslog/losslog.txt', 'a') as f:
+          f.write(','.join([str(x.item()) for x in losses] + [str(epoch), str(lr)]) + '\n')
+          utils.draw_loss(8)
         
         scalar_dict = {"loss/g/total": loss_gen_all, "loss/d/total": loss_disc_all, "learning_rate": lr, "grad_norm_d": grad_norm_d, "grad_norm_g": grad_norm_g}
         scalar_dict.update({"loss/g/fm": loss_fm, "loss/g/mel": loss_mel, "loss/g/dur": loss_dur, "loss/g/kl": loss_kl})
@@ -228,14 +230,12 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
           scalars=scalar_dict)
 
       if global_step % hps.train.eval_interval == 0:
-        print(global_step, 'saving checkpoint')
         evaluate(hps, net_g, eval_loader, writer_eval)
-        # utils.save_checkpoint(net_g, optim_g, hps.train.learning_rate, epoch, '/content/drive/MyDrive/Genshin_ms/G_ms.pth')
-        # utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, '/content/drive/MyDrive/Genshin_ms/D_ms.pth')
-        utils.save_checkpoint(net_g, optim_g, hps.train.learning_rate, epoch, 'checkpoints/G_ms.pth')
-        utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, 'checkpoints/D_ms.pth')
+        utils.save_checkpoint(net_g, optim_g, hps.train.learning_rate, epoch, os.path.join(hps.checkpoints, "G_.pth"))
+        utils.save_checkpoint(net_d, optim_d, hps.train.learning_rate, epoch, os.path.join(hps.checkpoints, "D_.pth"))
     global_step += 1
-    print(global_step)
+    if global_step % 10 == 0:
+      print(f'global step: ---- {global_step} ----')
   
   if rank == 0:
     logger.info('====> Epoch: {}'.format(epoch))

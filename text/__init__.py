@@ -1,21 +1,14 @@
 """ from https://github.com/keithito/tacotron """
 from text import cleaners
-from text.symbols import symbols,symbols_zh
+from text.symbols import symbols
 
 
 # Mappings from symbol to numeric ID and vice versa:
 _symbol_to_id = {s: i for i, s in enumerate(symbols)}
 _id_to_symbol = {i: s for i, s in enumerate(symbols)}
 
-chinese_mode = True
-if chinese_mode:
-  _symbol_to_id = {s: i for i, s in enumerate(symbols_zh)}
-  _id_to_symbol = {i: s for i, s in enumerate(symbols_zh)}
-else:
-  _symbol_to_id = {s: i for i, s in enumerate(symbols)}
-  _id_to_symbol = {i: s for i, s in enumerate(symbols)}
 
-def text_to_sequence(text, cleaner_names, ):
+def text_to_sequence(text, cleaner_names):
   '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
     Args:
       text: string to convert to a sequence
@@ -26,25 +19,26 @@ def text_to_sequence(text, cleaner_names, ):
   sequence = []
 
   clean_text = _clean_text(text, cleaner_names)
-  for symbol in clean_text:
-    if symbol not in _symbol_to_id.keys():
-      continue
-    symbol_id = _symbol_to_id[symbol]
-    sequence += [symbol_id]
-  return sequence
+  return cleaned_text_to_sequence(clean_text)
 
 
-def cleaned_text_to_sequence(cleaned_text, chinese_mode=True):
+def cleaned_text_to_sequence(cleaned_text):
   '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
     Args:
       text: string to convert to a sequence
     Returns:
       List of integers corresponding to the symbols in the text
   '''
-  # if chinese_mode:
-  #   sequence = [_symbol_to_id_zh[symbol] for symbol in cleaned_text]
-  # else:
-  sequence = [_symbol_to_id[symbol] for symbol in cleaned_text]
+  sequence = []
+  for symbol in cleaned_text.split(" "):
+    if symbol in _symbol_to_id:
+      sequence.append(_symbol_to_id[symbol])
+    else:
+      for s in symbol:
+        sequence.append(_symbol_to_id[s])
+    sequence.append(_symbol_to_id[" "])
+  if sequence[-1] == _symbol_to_id[" "]:
+    sequence = sequence[:-1]
   return sequence
 
 

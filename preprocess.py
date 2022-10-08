@@ -7,7 +7,7 @@ if __name__ == '__main__':
   parser.add_argument("--out_extension", default="cleaned")
   parser.add_argument("--text_index", default=2, type=int)
   parser.add_argument("--filelists", nargs="+", default=["filelists/train_filelist.txt", "filelists/val_filelist.txt"])
-  parser.add_argument("--text_cleaners", nargs="+", default=["chinese_cleaners1"])
+  parser.add_argument("--text_cleaners", nargs="+", default=["chinese_cleaners2"])
 
   args = parser.parse_args()
     

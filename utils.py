@@ -8,6 +8,7 @@ import subprocess
 import numpy as np
 from scipy.io.wavfile import read
 import torch
+import matplotlib.pyplot as plt
 
 MATPLOTLIB_FLAG = False
 
@@ -71,7 +72,7 @@ def latest_checkpoint_path(dir_path, regex="G_*.pth"):
   f_list = glob.glob(os.path.join(dir_path, regex))
   f_list.sort(key=lambda f: int("".join(filter(str.isdigit, f))))
   x = f_list[-1]
-  print(x)
+  print(f'loading latest checkpoint {x}')
   return x
 
 
@@ -225,6 +226,32 @@ def get_logger(model_dir, filename="train.log"):
   logger.addHandler(h)
   return logger
 
+def draw_loss(length):
+    path = './checkpoints/losslog/'
+    losses = [[] for i in range(length)]
+    losses_name = ['loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, epoch, lr']
+    with open(path + 'losslog.txt', 'r') as f:
+      lines = f.readlines()
+      print(lines)
+      for line in lines:
+        line = line.strip().split(',')
+        for idx in len(losses):
+          for i in range(len(line)):
+            losses[idx].append(float(line[i]))
+    print(losses)
+    epoch = int(losses[-2][-1])
+    x1 = range(1, epoch+1)
+    plt.title('Train loss vs. epoches', fontsize=20)
+    for i in range(len(losses)):
+      print(len(x1), len(losses[i]))
+      plt.cla()
+      plt.plot(x1, losses[i], '.-')
+      plt.xlabel('epoches', fontsize=20)
+      plt.ylabel(f'{losses_name[i]}', fontsize=20)
+      plt.grid()
+      plt.savefig(path + f"{losses_name[i]}.png")
+      if i != 6:
+        plt.plot()
 
 class HParams():
   def __init__(self, **kwargs):
