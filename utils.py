@@ -229,23 +229,19 @@ def get_logger(model_dir, filename="train.log"):
 def draw_loss(length):
     path = './checkpoints/losslog/'
     losses = [[] for i in range(length)]
-    losses_name = ['loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, epoch, lr']
+    losses_name = ['epoch, loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, lr']
     with open(path + 'losslog.txt', 'r') as f:
       lines = f.readlines()
       if not lines:
         return
       for line in lines:
-        line = line.strip().split(',')
+        line = line.strip().split('\t')
         for idx in range(len(losses)):
           losses[idx].append(float(line[idx]))
     print(losses)
-    epoch = int(losses[-2][-1])
-    x1 = range(1, epoch+1)
+    x1 = range(1, len(losses[0]) + 1)
     plt.title('Train loss vs. epoches', fontsize=20)
-    for i in range(len(losses)):
-      if i == 6:
-        continue
-      print(len(x1), len(losses[i]))
+    for i in range(1, len(losses)):
       plt.cla()
       plt.plot(x1, losses[i], '.-')
       plt.xlabel('epoches', fontsize=20)

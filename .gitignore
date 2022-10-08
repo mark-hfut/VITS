@@ -15,3 +15,4 @@ checkpoints
 .docx
 .zip
 src/audio/*.spec.pt
+output

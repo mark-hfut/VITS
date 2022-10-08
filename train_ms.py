@@ -13,6 +13,9 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.cuda.amp import autocast, GradScaler
+
+from multiprocessing import cpu_count
+
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -47,7 +50,7 @@ def main():
 
   n_gpus = torch.cuda.device_count()
   os.environ['MASTER_ADDR'] = 'localhost'
-  os.environ['MASTER_PORT'] = '8080'
+  os.environ['MASTER_PORT'] = '8000'
 
   hps = utils.get_hparams()
   mp.spawn(run, nprocs=n_gpus, args=(n_gpus, hps,))
@@ -74,8 +77,8 @@ def run(rank, n_gpus, hps):
       num_replicas=n_gpus,
       rank=rank,
       shuffle=True)
-  collate_fn = TextAudioSpeakerCollate()
-  train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False, pin_memory=True,
+  collate_fn = TextAudioSpeakerCollate()  
+  train_loader = DataLoader(train_dataset, num_workers=cpu_count(), shuffle=False, pin_memory=True,
       collate_fn=collate_fn, batch_sampler=train_sampler)
   if rank == 0:
     eval_dataset = TextAudioSpeakerLoader(hps.data.validation_files, hps.data)
@@ -205,21 +208,17 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
         logger.info('Train Epoch: {} [{:.0f}%]'.format(
           epoch,
           100. * batch_idx / len(train_loader)))
-        logger.info('loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, global_step, lr')
-        logger.info([x.item() for x in losses] + [global_step, lr])
-        # write_mod = 'a'
-        # with open('./checkpoints/losslog/losslog.txt', 'r') as f:
-        #   lines = f.readlines()
-        #   line = lines[-1].strip().split(',')
-        #   print(line)
-        #   if int(line[-2]) != epoch - 1:
-        #     write_mod = 'w'
-        #   else:
-        #     write_mod = 'a'
-        # with open('./checkpoints/losslog/losslog.txt', write_mod) as f:
-        #   f.write(','.join([str(x.item()) for x in losses] + [str(epoch), str(lr)]) + '\n')
-        #   # if epoch > 1:
-        #   utils.draw_loss(8)
+        logger.info('global_step, loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, lr')
+        logger.info([global_step]+ [x.item() for x in losses] + [lr])
+        write_mod = 'a'
+        with open('./checkpoints/losslog/losslog.txt', 'r') as f:
+          lines = f.readlines()
+          line = lines[-1].strip().split('\t')
+          print(f'reading last epoch {line[0]}')
+          write_mod = 'a' if epoch > int(line[0]) else 'w'
+        with open('./checkpoints/losslog/losslog.txt', mode=write_mod) as f:
+          f.write('\t'.join([str(epoch)] + [str(x.item()) for x in losses] + [str(lr)]) + '\n')
+          # utils.draw_loss(8)
         
         scalar_dict = {"loss/g/total": loss_gen_all, "loss/d/total": loss_disc_all, "learning_rate": lr, "grad_norm_d": grad_norm_d, "grad_norm_g": grad_norm_g}
         scalar_dict.update({"loss/g/fm": loss_fm, "loss/g/mel": loss_mel, "loss/g/dur": loss_dur, "loss/g/kl": loss_kl})
