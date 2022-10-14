@@ -241,7 +241,7 @@ def draw_loss(length):
     print(losses)
     x1 = range(1, len(losses[0]) + 1)
     plt.title('Train loss vs. epoches', fontsize=20)
-    for i in range(1, len(losses)):
+    for i in range(1, len(losses) - 1):
       plt.cla()
       plt.plot(x1, losses[i], '.-')
       plt.xlabel('epoches', fontsize=20)
