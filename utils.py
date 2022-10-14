@@ -8,7 +8,7 @@ import subprocess
 import numpy as np
 from scipy.io.wavfile import read
 import torch
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 MATPLOTLIB_FLAG = False
 
@@ -226,29 +226,29 @@ def get_logger(model_dir, filename="train.log"):
   logger.addHandler(h)
   return logger
 
-def draw_loss(length):
-    path = './checkpoints/losslog/'
-    losses = [[] for i in range(length)]
-    losses_name = ['epoch, loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, lr']
-    with open(path + 'losslog.txt', 'r') as f:
-      lines = f.readlines()
-      if not lines:
-        return
-      for line in lines:
-        line = line.strip().split('\t')
-        for idx in range(len(losses)):
-          losses[idx].append(float(line[idx]))
-    print(losses)
-    x1 = range(1, len(losses[0]) + 1)
-    plt.title('Train loss vs. epoches', fontsize=20)
-    for i in range(1, len(losses) - 1):
-      plt.cla()
-      plt.plot(x1, losses[i], '.-')
-      plt.xlabel('epoches', fontsize=20)
-      plt.ylabel(f'{losses_name[i]}', fontsize=20)
-      plt.grid()
-      plt.savefig(path + f"{losses_name[i]}.png")
-      plt.plot()
+# def draw_loss(length):
+#     path = './checkpoints/losslog/'
+#     losses = [[] for i in range(length)]
+#     losses_name = ['epoch, loss_disc, loss_gen, loss_fm, loss_mel, loss_dur, loss_kl, lr']
+#     with open(path + 'losslog.txt', 'r') as f:
+#       lines = f.readlines()
+#       if not lines:
+#         return
+#       for line in lines:
+#         line = line.strip().split('\t')
+#         for idx in range(len(losses)):
+#           losses[idx].append(float(line[idx]))
+#     print(losses)
+#     x1 = range(1, len(losses[0]) + 1)
+#     plt.title('Train loss vs. epoches', fontsize=20)
+#     for i in range(1, len(losses) - 1):
+#       plt.cla()
+#       plt.plot(x1, losses[i], '.-')
+#       plt.xlabel('epoches', fontsize=20)
+#       plt.ylabel(f'{losses_name[i]}', fontsize=20)
+#       plt.grid()
+#       plt.savefig(path + f"{losses_name[i]}.png")
+#       plt.plot()
 
 class HParams():
   def __init__(self, **kwargs):

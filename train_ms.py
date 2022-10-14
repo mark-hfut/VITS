@@ -58,6 +58,7 @@ def main():
 
 def run(rank, n_gpus, hps):
   global global_step
+  torch.cuda.empty_cache()
   if rank == 0:
     logger = utils.get_logger(hps.model_dir)
     logger.info(hps)
