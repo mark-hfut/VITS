@@ -16,3 +16,5 @@ checkpoints
 .zip
 src/audio/*.spec.pt
 output
+.out
+master
